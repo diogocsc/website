@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin — CV Manager</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400&family=Playfair+Display:wght@600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+</head>
+<body class="admin-body">
+
+  <div class="admin-layout">
+
+    <!-- Sidebar -->
+    <aside class="admin-sidebar">
+      <div class="admin-sidebar__logo">◎</div>
+      <nav class="admin-sidebar__nav">
+        <a href="#upload" class="admin-nav-link active">Upload CV</a>
+        <a href="#preview" class="admin-nav-link">Preview Data</a>
+        <a href="/" target="_blank" class="admin-nav-link">View Site ↗</a>
+      </nav>
+      <a href="/admin/logout" class="admin-sidebar__logout">Sign out</a>
+    </aside>
+
+    <!-- Main -->
+    <main class="admin-main">
+
+      <header class="admin-header">
+        <h1 class="admin-header__title">CV Manager</h1>
+        <p class="admin-header__sub">Upload your CV to automatically update the portfolio site.</p>
+      </header>
+
+      <!-- Upload section -->
+      <section class="admin-section" id="upload">
+        <h2 class="admin-section__title">Upload CV</h2>
+        <div class="upload-zone" id="uploadZone">
+          <input type="file" id="cvFile" accept=".docx" hidden />
+          <div class="upload-zone__icon">↑</div>
+          <div class="upload-zone__label">Drop your <strong>.docx</strong> CV here</div>
+          <div class="upload-zone__sub">or <button type="button" class="upload-zone__browse" id="browseBtn">browse file</button></div>
+          <div class="upload-zone__hint">Max 10MB · .docx only</div>
+        </div>
+
+        <div class="upload-status" id="uploadStatus" hidden>
+          <div class="upload-status__bar">
+            <div class="upload-status__fill" id="statusFill"></div>
+          </div>
+          <div class="upload-status__msg" id="statusMsg">Parsing with Ollama…</div>
+        </div>
+
+        <div class="admin-alert" id="uploadResult" hidden></div>
+      </section>
+
+      <!-- Current CV Preview -->
+      <section class="admin-section" id="preview">
+        <h2 class="admin-section__title">
+          Current CV Data
+          {% if cv %}<span class="admin-badge admin-badge--green">Loaded</span>{% else %}<span class="admin-badge">Empty</span>{% endif %}
+        </h2>
+
+        {% if cv %}
+        <div class="cv-preview">
+
+          <div class="cv-preview__block">
+            <div class="cv-preview__label">Identity</div>
+            <div class="cv-preview__value">{{ cv.name }} · {{ cv.title }}</div>
+            <div class="cv-preview__sub">{{ cv.location }} · {{ cv.email }}</div>
+          </div>
+
+          {% if cv.experience %}
+          <div class="cv-preview__block">
+            <div class="cv-preview__label">Experience</div>
+            {% for job in cv.experience %}
+            <div class="cv-preview__row">
+              <span class="cv-preview__mono">{{ job.period }}</span>
+              <span>{{ job.role }} @ {{ job.company }}</span>
+            </div>
+            {% endfor %}
+          </div>
+          {% endif %}
+
+          {% if cv.projects %}
+          <div class="cv-preview__block">
+            <div class="cv-preview__label">Projects</div>
+            {% for p in cv.projects %}
+            <div class="cv-preview__row">
+              <span class="cv-preview__mono">{{ p.url or '—' }}</span>
+              <span>{{ p.name }}</span>
+            </div>
+            {% endfor %}
+          </div>
+          {% endif %}
+
+          {% if cv.certifications %}
+          <div class="cv-preview__block">
+            <div class="cv-preview__label">Certifications ({{ cv.certifications | length }})</div>
+            {% for c in cv.certifications %}
+            <div class="cv-preview__row"><span>{{ c }}</span></div>
+            {% endfor %}
+          </div>
+          {% endif %}
+
+          <details class="cv-preview__raw">
+            <summary>Raw JSON</summary>
+            <pre>{{ cv | tojson(indent=2) }}</pre>
+          </details>
+
+        </div>
+        {% else %}
+        <div class="admin-empty">No CV data yet. Upload a .docx above to get started.</div>
+        {% endif %}
+      </section>
+
+    </main>
+  </div>
+
+  <script src="{{ url_for('static', filename='js/admin.js') }}"></script>
+</body>
+</html>
