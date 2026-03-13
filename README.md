@@ -1,6 +1,6 @@
-# CV Portfolio Site
+# diogocordeiro.pt
 
-A Flask-based CV portfolio that updates automatically when you upload a `.docx` file. The admin panel parses the document with **Ollama Cloud** (e.g. `gpt-oss:120b`) and saves structured data; the public site renders it with a clean, responsive layout. Admin login is protected with **Google reCAPTCHA v2**.
+A Flask-based diogocordeiro.pt that updates automatically when you upload a `.docx` file. The admin panel parses the document with **Ollama Cloud** (e.g. `gpt-oss:120b`) and saves structured data; the public site renders it with a clean, responsive layout. Admin login is protected with **Google reCAPTCHA v2**.
 
 ## Project structure
 
@@ -75,7 +75,7 @@ Admin login requires the password from `.env` and a completed reCAPTCHA v2 chall
 Build and run with Docker:
 
 ```bash
-docker build -t portfolio .
+docker build -t website .
 docker run -p 5000:5000 --env-file .env portfolio
 ```
 
@@ -83,7 +83,7 @@ Or add this service to an existing `docker-compose.yml`:
 
 ```yaml
 services:
-  portfolio:
+  website:
     build: ./website
     ports:
       - "5000:5000"

@@ -4,6 +4,7 @@ import requests
 from flask import Flask, render_template, request, jsonify, redirect, url_for, session
 from werkzeug.utils import secure_filename
 from dotenv import load_dotenv
+from flask_mail import Mail, Message
 from cv_parser import parse_cv_with_ollama
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -21,6 +22,17 @@ RECAPTCHA_SECRET_KEY = os.environ.get('RECAPTCHA_SECRET_KEY')
 
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['MAX_CONTENT_LENGTH'] = 10 * 1024 * 1024  # 10MB
+
+# Flask-Mail configuration (similar to BridgeSpace)
+app.config['MAIL_SERVER'] = os.environ.get('MAIL_SERVER', 'smtp.gmail.com')
+app.config['MAIL_PORT'] = int(os.environ.get('MAIL_PORT', '587'))
+app.config['MAIL_USE_TLS'] = os.environ.get('MAIL_USE_TLS', 'true').lower() == 'true'
+app.config['MAIL_USE_SSL'] = os.environ.get('MAIL_USE_SSL', 'false').lower() == 'true'
+app.config['MAIL_USERNAME'] = os.environ.get('MAIL_USERNAME')
+app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD')
+app.config['MAIL_DEFAULT_SENDER'] = os.environ.get('MAIL_DEFAULT_SENDER', app.config.get('MAIL_USERNAME'))
+
+mail = Mail(app)
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
@@ -51,9 +63,29 @@ def contact():
     message = data.get('message', '').strip()
     if not name or not email or not message:
         return jsonify({'success': False, 'error': 'All fields are required.'}), 400
-    # TODO: plug in Flask-Mail / SendGrid here
-    print(f"[CONTACT] {name} <{email}>: {message}")
-    return jsonify({'success': True})
+    recipient = os.environ.get('CONTACT_RECIPIENT_EMAIL') or app.config.get('MAIL_DEFAULT_SENDER')
+    if not recipient or not app.config.get('MAIL_SERVER'):
+        # Fallback: log only if mail is not configured
+        print(f"[CONTACT] (mail not configured) {name} <{email}>: {message}")
+        return jsonify({'success': True})
+
+    try:
+        msg = Message(
+            subject=f"[diogocordeiro.pt] New message from {name}",
+            recipients=[recipient],
+            reply_to=email or None,
+        )
+        msg.body = (
+            f"New contact form submission from your portfolio site:\n\n"
+            f"Name: {name}\n"
+            f"Email: {email}\n\n"
+            f"Message:\n{message}\n"
+        )
+        mail.send(msg)
+        return jsonify({'success': True})
+    except Exception as e:
+        print(f"[CONTACT][ERROR] failed to send email: {e}")
+        return jsonify({'success': False, 'error': 'Unable to send email at the moment.'}), 500
 
 # ── Admin routes ────────────────────────────────────────────────
 
