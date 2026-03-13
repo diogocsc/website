@@ -48,8 +48,18 @@
   {% endif %}
   <div class="hero__meta reveal">
     {% if cv.location %}<span>{{ cv.location }}</span>{% endif %}
-    {% if cv.email %}<span class="sep">·</span><a href="mailto:{{ cv.email }}">{{ cv.email }}</a>{% endif %}
-    {% if cv.phone %}<span class="sep">·</span><a href="tel:{{ cv.phone }}">{{ cv.phone }}</a>{% endif %}
+    {% if cv.email %}
+      {% set email_parts = cv.email.split('@') %}
+      <span class="sep">·</span>
+      <span class="email-link"
+            data-user="{{ email_parts[0] }}"
+            data-domain="{{ email_parts[1] }}"></span>
+    {% endif %}
+    {% if cv.phone %}
+      <span class="sep">·</span>
+      <span class="phone-link"
+            data-phone="{{ cv.phone }}"></span>
+    {% endif %}
     {% if cv.website %}<span class="sep">·</span><a href="https://{{ cv.website }}" target="_blank">{{ cv.website }}</a>{% endif %}
   </div>
   <div class="hero__scroll reveal">
@@ -183,8 +193,16 @@
         Drop me a line — I typically respond within 24 hours.
       </p>
       <div class="contact__links">
-        {% if cv.email %}<a href="mailto:{{ cv.email }}" class="contact__link">{{ cv.email }}</a>{% endif %}
-        {% if cv.phone %}<a href="tel:{{ cv.phone }}" class="contact__link">{{ cv.phone }}</a>{% endif %}
+        {% if cv.email %}
+          {% set email_parts = cv.email.split('@') %}
+          <span class="contact__link email-link"
+                data-user="{{ email_parts[0] }}"
+                data-domain="{{ email_parts[1] }}"></span>
+        {% endif %}
+        {% if cv.phone %}
+          <span class="contact__link phone-link"
+                data-phone="{{ cv.phone }}"></span>
+        {% endif %}
         {% if cv.website %}<a href="https://{{ cv.website }}" target="_blank" class="contact__link">{{ cv.website }}</a>{% endif %}
       </div>
     </div>

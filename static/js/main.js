@@ -117,3 +117,27 @@ window.addEventListener('scroll', () => {
     a.style.color = a.getAttribute('href') === `#${current}` ? 'var(--ink)' : '';
   });
 }, { passive: true });
+
+/* ─── EMAIL OBFUSCATION ──────────────────────────────────────── */
+document.querySelectorAll('.email-link[data-user][data-domain]').forEach(el => {
+  const user = el.getAttribute('data-user');
+  const domain = el.getAttribute('data-domain');
+  if (!user || !domain) return;
+  const addr = `${user}@${domain}`;
+  el.textContent = addr;
+  el.addEventListener('click', (e) => {
+    e.preventDefault();
+    window.location.href = `mailto:${addr}`;
+  });
+});
+
+/* ─── PHONE OBFUSCATION ──────────────────────────────────────── */
+document.querySelectorAll('.phone-link[data-phone]').forEach(el => {
+  const phone = el.getAttribute('data-phone');
+  if (!phone) return;
+  el.textContent = phone;
+  el.addEventListener('click', (e) => {
+    e.preventDefault();
+    window.location.href = `tel:${phone}`;
+  });
+});
