@@ -8,6 +8,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <script src="https://www.google.com/recaptcha/api.js" async defer></script>
 </head>
 <body>
 
@@ -221,6 +222,11 @@
         <label for="message">Message</label>
         <textarea id="message" name="message" rows="5" placeholder="Tell me about your project or opportunity…" required></textarea>
       </div>
+      {% if recaptcha_site_key %}
+      <div class="form__field" style="margin-top: 1rem;">
+        <div class="g-recaptcha" data-sitekey="{{ recaptcha_site_key }}"></div>
+      </div>
+      {% endif %}
       <button type="submit" class="form__submit" id="submitBtn">
         <span class="btn-text">Send message</span>
         <span class="btn-arrow">→</span>

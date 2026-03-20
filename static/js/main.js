@@ -80,6 +80,18 @@ if (form) {
     formStatus.className = 'form__status';
 
     try {
+      // reCAPTCHA v2: token is stored client-side and must be verified server-side
+      let recaptchaToken = null;
+      const recaptchaEl = form.querySelector('.g-recaptcha');
+      if (recaptchaEl) {
+        if (window.grecaptcha && typeof window.grecaptcha.getResponse === 'function') {
+          recaptchaToken = window.grecaptcha.getResponse();
+        }
+        if (!recaptchaToken) {
+          throw new Error('Please complete the reCAPTCHA.');
+        }
+      }
+
       const res = await fetch('/contact', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -87,6 +99,7 @@ if (form) {
           name:    document.getElementById('name').value,
           email:   document.getElementById('email').value,
           message: document.getElementById('message').value,
+          recaptcha_token: recaptchaToken,
         }),
       });
       const data = await res.json();
@@ -94,6 +107,9 @@ if (form) {
         formStatus.textContent = '✓ Message sent — I\'ll be in touch soon.';
         formStatus.classList.add('form__status--success');
         form.reset();
+        if (window.grecaptcha && typeof window.grecaptcha.reset === 'function') {
+          window.grecaptcha.reset();
+        }
       } else {
         throw new Error(data.error || 'Something went wrong.');
       }

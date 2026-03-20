@@ -53,16 +53,38 @@ def save_cv_data(data):
 @app.route('/')
 def index():
     cv = load_cv_data()
-    return render_template('index.html', cv=cv)
+    return render_template('index.html', cv=cv, recaptcha_site_key=RECAPTCHA_SITE_KEY)
 
 @app.route('/contact', methods=['POST'])
 def contact():
-    data = request.get_json()
+    data = request.get_json(silent=True) or {}
     name    = data.get('name', '').strip()
     email   = data.get('email', '').strip()
     message = data.get('message', '').strip()
     if not name or not email or not message:
         return jsonify({'success': False, 'error': 'All fields are required.'}), 400
+
+    # reCAPTCHA verification for contact form submissions
+    recaptcha_token = data.get('recaptcha_token') or data.get('g-recaptcha-response')
+    if not RECAPTCHA_SITE_KEY or not RECAPTCHA_SECRET_KEY:
+        return jsonify({'success': False, 'error': 'reCAPTCHA is not configured.'}), 400
+    if not recaptcha_token:
+        return jsonify({'success': False, 'error': 'Please complete the reCAPTCHA.'}), 400
+    try:
+        resp = requests.post(
+            'https://www.google.com/recaptcha/api/siteverify',
+            data={
+                'secret': RECAPTCHA_SECRET_KEY,
+                'response': recaptcha_token,
+                'remoteip': request.remote_addr,
+            },
+            timeout=5,
+        )
+        result = resp.json()
+        if not result.get('success'):
+            return jsonify({'success': False, 'error': 'reCAPTCHA verification failed. Please try again.'}), 400
+    except Exception:
+        return jsonify({'success': False, 'error': 'reCAPTCHA verification failed. Please try again.'}), 400
     recipient = os.environ.get('CONTACT_RECIPIENT_EMAIL') or app.config.get('MAIL_DEFAULT_SENDER')
     if not recipient or not app.config.get('MAIL_SERVER'):
         # Fallback: log only if mail is not configured
